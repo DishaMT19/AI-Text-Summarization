@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Text Summarizer Pro</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Animated Background Particles -->
+    <div class="particles" id="particles"></div>
+    
+    <!-- Theme Toggle -->
+    <div class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark Mode">
+        <i class="fas fa-moon" id="themeIcon"></i>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-robot"></i> AI Text Summarizer Pro</h1>
+            <p>Transform lengthy documents into concise summaries using advanced AI algorithms</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Input Section -->
+            <div class="input-section">
+                <div class="section-title">
+                    <i class="fas fa-pen-alt"></i> Input Text
+                </div>
+                
+                <div class="textarea-container">
+                    <textarea id="inputText" placeholder="Paste your text here or start typing...
+
+Example: The quick brown fox jumps over the lazy dog. This is a test sentence to demonstrate the summarizer's capabilities.
+
+You can also paste long articles, research papers, documents, or any text that needs summarization. The AI will analyze the content and generate a concise summary based on your selected algorithm and compression ratio."></textarea>
+                    <div class="word-count" id="inputWordCount">
+                        <i class="fas fa-font"></i> Words: 0 | Chars: 0
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <div class="control-group">
+                        <label for="algo">
+                            <i class="fas fa-brain"></i> Algorithm
+                        </label>
+                        <select id="algo">
+                            <option value="tfidf">TF-IDF (Statistical)</option>
+                            <option value="textrank">TextRank (Graph-based)</option>
+                            <option value="bert">BERT (Deep Learning)</option>
+                        </select>
+                        
+                        <div class="algorithm-info">
+                            <div class="algorithm-card">
+                                <h4 id="algoName">TF-IDF Algorithm</h4>
+                                <p id="algoDescription">Statistical approach that extracts important sentences based on term frequency and inverse document frequency. Best for technical and scientific documents.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="ratio">
+                            <i class="fas fa-sliders-h"></i> Summary Length
+                        </label>
+                        <div class="slider-container">
+                            <div class="slider-value">
+                                <span>Compression Ratio</span>
+                                <span id="ratioVal">
+                                    <span id="percentageValue" class="percentage medium">30%</span>
+                                </span>
+                            </div>
+                            <input type="range" id="ratio" min="10" max="70" value="30" step="5">
+                            <div class="slider-labels">
+                                <span>Short</span>
+                                <span>Detailed</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="button-container">
+                    <button class="btn btn-primary" onclick="generateSummary()">
+                        <i class="fas fa-magic"></i> Generate Summary
+                    </button>
+                    <button class="btn btn-secondary" onclick="clearText()">
+                        <i class="fas fa-trash"></i> Clear Text
+                    </button>
+                    <button class="btn btn-secondary" onclick="insertSample()">
+                        <i class="fas fa-file-alt"></i> Sample Text
+                    </button>
+                </div>
+
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p id="loadingText">Processing your text with AI...</p>
+                </div>
+            </div>
+
+            <!-- Output Section -->
+            <div class="output-section">
+                <div class="section-title">
+                    <i class="fas fa-file-alt"></i> Generated Summary
+                </div>
+                
+                <div class="textarea-container">
+                    <textarea id="output" readonly placeholder="Your summary will appear here...
+
+Once you generate a summary, you'll see:
+✓ Concise version of your text
+✓ Compression statistics
+✓ Option to copy or download"></textarea>
+                    <div class="word-count" id="outputWordCount">
+                        <i class="fas fa-font"></i> Words: 0 | Chars: 0
+                    </div>
+                </div>
+
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="originalCount">0</div>
+                        <div class="stat-label">
+                            <i class="fas fa-file-word"></i> Original Words
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="summaryCount">0</div>
+                        <div class="stat-label">
+                            <i class="fas fa-file-contract"></i> Summary Words
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="compressionRate">0%</div>
+                        <div class="stat-label">
+                            <i class="fas fa-compress-arrows-alt"></i> Compression
+                        </div>
+                    </div>
+                </div>
+
+                <div class="button-container">
+                    <button class="btn btn-secondary" onclick="copyToClipboard()">
+                        <i class="fas fa-copy"></i> Copy Summary
+                    </button>
+                    <button class="btn btn-secondary" onclick="downloadSummary()">
+                        <i class="fas fa-download"></i> Download as TXT
+                    </button>
+                    <button class="btn btn-secondary" onclick="speakSummary()">
+                        <i class="fas fa-volume-up"></i> Read Aloud
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Stats -->
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-value" id="totalSummaries">0</div>
+                <div class="stat-label">
+                    <i class="fas fa-history"></i> Total Summaries
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="timeSaved">0</div>
+                <div class="stat-label">
+                    <i class="fas fa-clock"></i> Time Saved (min)
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="avgCompression">0%</div>
+                <div class="stat-label">
+                    <i class="fas fa-chart-pie"></i> Avg Compression
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Action Button -->
+    <div class="fab" onclick="scrollToTop()" title="Scroll to Top">
+        <i class="fas fa-arrow-up"></i>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle" id="toastIcon"></i>
+        <span id="toastMessage"></span>
+    </div>
+
+    <script>
+        // Algorithm information
+        const algoInfo = {
+            tfidf: {
+                name: "TF-IDF Algorithm",
+                description: "Statistical approach that extracts important sentences based on term frequency and inverse document frequency. Best for technical and scientific documents.",
+                icon: "fas fa-calculator"
+            },
+            textrank: {
+                name: "TextRank Algorithm",
+                description: "Graph-based algorithm similar to Google's PageRank. Identifies important sentences based on similarity relationships between sentences.",
+                icon: "fas fa-project-diagram"
+            },
+            bert: {
+                name: "BERT (Deep Learning)",
+                description: "State-of-the-art transformer model that understands context and extracts semantically meaningful summaries using deep learning.",
+                icon: "fas fa-network-wired"
+            }
+        };
+
+        // DOM Elements
+        const inputText = document.getElementById('inputText');
+        const outputText = document.getElementById('output');
+        const ratioSlider = document.getElementById('ratio');
+        const percentageValue = document.getElementById('percentageValue');
+        const algoSelect = document.getElementById('algo');
+        const loading = document.getElementById('loading');
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toastMessage');
+        const toastIcon = document.getElementById('toastIcon');
+        const particlesContainer = document.getElementById('particles');
+        const themeIcon = document.getElementById('themeIcon');
+
+        // Statistics
+        let totalSummaries = 0;
+        let totalTimeSaved = 0;
+        let totalCompression = 0;
+
+        // Initialize
+        createParticles();
+        updateWordCount();
+        updateAlgorithmInfo();
+        updateSliderValue();
+        updateStatsUI();
+        loadTheme();
+
+        // Event Listeners
+        inputText.addEventListener('input', updateWordCount);
+        ratioSlider.addEventListener('input', updateSliderValue);
+        algoSelect.addEventListener('change', updateAlgorithmInfo);
+
+        // Create Particles
+        function createParticles() {
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.width = `${Math.random() * 20 + 5}px`;
+                particle.style.height = particle.style.width;
+                particle.style.left = `${Math.random() * 100}vw`;
+                particle.style.top = `${Math.random() * 100}vh`;
+                particle.style.opacity = Math.random() * 0.3 + 0.1;
+                particle.style.animationDuration = `${Math.random() * 30 + 20}s`;
+                particle.style.animationDelay = `${Math.random() * 5}s`;
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // Update word count
+        function updateWordCount() {
+            const text = inputText.value;
+            const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+            const chars = text.length;
+            document.getElementById('inputWordCount').innerHTML = 
+                `<i class="fas fa-font"></i> Words: ${words} | Chars: ${chars}`;
+            
+            const outputText = document.getElementById('output').value;
+            const outputWords = outputText.trim() ? outputText.trim().split(/\s+/).length : 0;
+            const outputChars = outputText.length;
+            document.getElementById('outputWordCount').innerHTML = 
+                `<i class="fas fa-font"></i> Words: ${outputWords} | Chars: ${outputChars}`;
+        }
+
+        // Update slider value with dynamic color
+        function updateSliderValue() {
+            const value = parseInt(ratioSlider.value);
+            percentageValue.textContent = `${value}%`;
+            
+            // Update slider background
+            ratioSlider.style.setProperty('--slider-progress', `${value}%`);
+            
+            // Update color based on value
+            percentageValue.className = 'percentage';
+            if (value <= 30) {
+                percentageValue.classList.add('low');
+                ratioSlider.className = 'low';
+            } else if (value <= 50) {
+                percentageValue.classList.add('medium');
+                ratioSlider.className = 'medium';
+            } else if (value <= 60) {
+                percentageValue.classList.add('high');
+                ratioSlider.className = 'high';
+            } else {
+                percentageValue.classList.add('very-high');
+                ratioSlider.className = 'very-high';
+            }
+            
+            // Animate the value
+            percentageValue.style.transform = 'scale(1.2)';
+            setTimeout(() => {
+                percentageValue.style.transform = 'scale(1)';
+            }, 200);
+        }
+
+        // Update algorithm info
+        function updateAlgorithmInfo() {
+            const algo = algoSelect.value;
+            const info = algoInfo[algo];
+            
+            document.getElementById('algoName').textContent = info.name;
+            document.getElementById('algoDescription').textContent = info.description;
+            
+            // Update card icon
+            const card = document.querySelector('.algorithm-card');
+            const icon = card.querySelector('i');
+            if (icon) {
+                icon.className = info.icon;
+            }
+        }
+
+        // Toast notification
+        function showToast(message, type = 'success') {
+            const icons = {
+                success: 'fas fa-check-circle',
+                error: 'fas fa-exclamation-circle',
+                warning: 'fas fa-exclamation-triangle',
+                info: 'fas fa-info-circle'
+            };
+            
+            toastIcon.className = icons[type] || icons.info;
+            toastMessage.textContent = message;
+            toast.className = `toast show ${type}`;
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Clear text
+        function clearText() {
+            inputText.value = '';
+            outputText.value = '';
+            updateWordCount();
+            updateStats(0, 0);
+            showToast('Text cleared successfully', 'warning');
+        }
+
+        // Insert sample text
+        function insertSample() {
+            const sampleText = `Artificial intelligence (AI) is intelligence demonstrated by machines, as opposed to natural intelligence displayed by animals including humans. Leading AI textbooks define the field as the study of "intelligent agents": any system that perceives its environment and takes actions that maximize its chance of achieving its goals.
+
+AI applications include advanced web search engines (e.g., Google), recommendation systems (used by YouTube, Amazon and Netflix), understanding human speech (such as Siri and Alexa), self-driving cars (e.g., Tesla), automated decision-making and competing at the highest level in strategic game systems (such as chess and Go).
+
+The field was founded on the assumption that human intelligence "can be so precisely described that a machine can be made to simulate it". This raised philosophical arguments about the mind and the ethical consequences of creating artificial beings endowed with human-like intelligence; these issues have previously been explored by myth, fiction and philosophy since antiquity.
+
+The traditional problems (or goals) of AI research include reasoning, knowledge representation, planning, learning, natural language processing, perception, and the ability to move and manipulate objects. General intelligence (the ability to solve an arbitrary problem) is among the field's long-term goals.`;
+
+            inputText.value = sampleText;
+            updateWordCount();
+            showToast('Sample text loaded successfully!', 'info');
+        }
+
+        // Update statistics
+        function updateStats(original, summary) {
+            // Animate counters
+            animateCounter('originalCount', original);
+            animateCounter('summaryCount', summary);
+            
+            const compression = original > 0 ? Math.round((1 - summary / original) * 100) : 0;
+            animateCounter('compressionRate', compression, '%');
+            
+            updateWordCount();
+            
+            // Update session statistics
+            if (original > 0 && summary > 0) {
+                totalSummaries++;
+                totalTimeSaved += Math.round(original / 200);
+                totalCompression = Math.round((totalCompression * (totalSummaries - 1) + compression) / totalSummaries);
+                updateStatsUI();
+            }
+        }
+
+        // Animate counter
+        function animateCounter(id, target, suffix = '') {
+            const element = document.getElementById(id);
+            const current = parseInt(element.textContent.replace(suffix, '') || 0);
+            const increment = target > current ? 1 : -1;
+            let currentValue = current;
+            
+            const timer = setInterval(() => {
+                currentValue += increment;
+                element.textContent = currentValue + suffix;
+                
+                if ((increment > 0 && currentValue >= target) || 
+                    (increment < 0 && currentValue <= target)) {
+                    element.textContent = target + suffix;
+                    clearInterval(timer);
+                }
+            }, 20);
+        }
+
+        // Update stats UI
+        function updateStatsUI() {
+            document.getElementById('totalSummaries').textContent = totalSummaries;
+            document.getElementById('timeSaved').textContent = totalTimeSaved;
+            document.getElementById('avgCompression').textContent = totalCompression + '%';
+        }
+
+        // Generate summary
+        async function generateSummary() {
+            const text = inputText.value.trim();
+            
+            if (!text) {
+                showToast('Please enter some text to summarize', 'error');
+                return;
+            }
+
+            if (text.split(/\s+/).length < 10) {
+                showToast('Text is too short for meaningful summarization', 'warning');
+                return;
+            }
+
+            loading.style.display = 'block';
+            const algo = algoSelect.value;
+            const ratio = ratioSlider.value / 100;
+
+            try {
+                const response = await fetch("/summarize", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({text, algorithm: algo, ratio})
+                });
+
+                if (!response.ok) throw new Error('Network response was not ok');
+                
+                const data = await response.json();
+                
+                outputText.value = data.summary;
+                updateStats(data.original_count, data.summary_count);
+                showToast(`Summary generated successfully using ${algoInfo[algo].name}`, 'success');
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Failed to generate summary. Please try again.', 'error');
+                outputText.value = 'Error: Could not generate summary. Please check your connection and try again.';
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        // Copy to clipboard
+        function copyToClipboard() {
+            const summary = outputText.value;
+            if (!summary) {
+                showToast('No summary to copy', 'warning');
+                return;
+            }
+
+            navigator.clipboard.writeText(summary)
+                .then(() => showToast('Summary copied to clipboard!', 'success'))
+                .catch(() => showToast('Failed to copy to clipboard', 'error'));
+        }
+
+        // Download summary
+        function downloadSummary() {
+            const summary = outputText.value;
+            if (!summary) {
+                showToast('No summary to download', 'warning');
+                return;
+            }
+
+            const blob = new Blob([summary], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `summary_${Date.now()}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showToast('Summary downloaded successfully!', 'success');
+        }
+
+        // Text to speech
+        // Text to speech
+let currentSpeech = null;
+
+function speakSummary() {
+    const summary = outputText.value;
+    if (!summary) {
+        showToast('No summary to read', 'warning');
+        return;
+    }
+
+    if ('speechSynthesis' in window) {
+        // If speech is currently playing, stop it
+        if (speechSynthesis.speaking) {
+            speechSynthesis.cancel();
+            currentSpeech = null;
+            showToast('Reading stopped', 'warning');
+            return;
+        }
+        
+        const speech = new SpeechSynthesisUtterance(summary);
+        currentSpeech = speech;
+        
+        speech.rate = 1;
+        speech.pitch = 1;
+        speech.volume = 1;
+        
+        speech.onstart = () => {
+            showToast('Reading summary aloud...', 'info');
+        };
+        
+        speech.onend = () => {
+            currentSpeech = null;
+            showToast('Reading completed', 'info');
+        };
+        
+        // speech.onerror = () => {
+        //     currentSpeech = null;
+        //     showToast('Error reading summary', 'error');
+        // };
+        
+        window.speechSynthesis.speak(speech);
+        
+    } else {
+        showToast('Text-to-speech not supported in your browser', 'error');
+    }
+}
+
+        // Scroll to top
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        // Theme toggle
+        function toggleTheme() {
+            const isDark = document.body.classList.toggle('dark-theme');
+            themeIcon.classList.toggle('fa-moon');
+            themeIcon.classList.toggle('fa-sun');
+            
+            // Save theme preference
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            
+            showToast(`Switched to ${isDark ? 'dark' : 'light'} mode`, 'info');
+        }
+
+        // Load theme preference
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-theme');
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+            }
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'Enter') {
+                e.preventDefault();
+                generateSummary();
+            }
+            if (e.ctrlKey && e.key === 'c') {
+                e.preventDefault();
+                clearText();
+            }
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                insertSample();
+            }
+        });
+
+        // Welcome message
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                showToast('Welcome to AI Text Summarizer Pro!', 'info');
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
