@@ -88,16 +88,21 @@ Follow the interactive prompts to input text and receive summaries.
 ## 📦 Project Structure
 
 ```
-Text-Summarization/
-├── app.py                  # Flask web application
-├── Text-Summarizer.py      # Command-line text summarizer
-├── requirements.txt        # Python dependencies
-├── static/
-│   └── style.css          # Web interface styling
+AI-Text-Summarization/
+│
+├── app.py
+├── Text-Summarizer.py
+├── requirements.txt
+├── README.md
+│
 ├── templates/
-│   └── index.html         # Web interface HTML
-├── text.ipynb             # Jupyter notebook with examples
-└── README.md              # This file
+│   └── index.html
+│
+├── static/
+│   └── style.css
+│
+└── text.ipynb
+
 ```
 
 ## 📋 Requirements
